@@ -1,5 +1,6 @@
 "use client";
 
+import { Data, useData } from "@/contexts/DataContext";
 import { fetcher, toSocialNumber } from "@/lib/utils";
 import {
   ChevronDown,
@@ -16,6 +17,9 @@ import useSWR from "swr";
 export default function Home() {
   const categories = ["Hot", "New", "Controversial", "Rising", "Top"];
   const [category, setCategory] = useState("Hot");
+  const { showSearchResult, query } = useData();
+
+  if (showSearchResult) return <SearchResult query={query} />;
 
   return (
     <div className="my-3 ml-3 rounded-lg bg-white h-full overflow-auto">
@@ -39,6 +43,37 @@ export default function Home() {
 
       {/* Posts */}
       <Posts category={category} />
+      {/* {showSearchResult ? <SearchResults /> : <Posts category={category} />} */}
+    </div>
+  );
+}
+
+function SearchResult({ query }: { query: string }) {
+  const { data, isLoadingSearching } = useData();
+  const _data: {
+    title: string;
+    name: string;
+    thumbnail: string;
+    comment: number;
+    share: number;
+    votes: number;
+  }[] = data.map((i: Data) => ({
+    title: i.data.title,
+    name: i.data.name,
+    thumbnail: i.data.thumbnail,
+    comment: i.data.num_comments,
+    share: i.data.wls,
+    votes: i.data.ups,
+  }));
+
+  
+
+  return (
+    <div className="flex flex-col gap-3 px-5 pb-5 overflow-auto max-h-full bg-white m-3 rounded">
+      <div className="py-3">Search Result : &quot;{query}&quot;</div>
+      {isLoadingSearching ? <div className="p-5 text-center">Loading...</div> : _data.map((d, i) => (
+        <Post key={i} {...d} />
+      ))}
     </div>
   );
 }
@@ -76,26 +111,16 @@ function Posts({ category }: { category: string }) {
     comment: number;
     share: number;
     votes: number;
-  }[] = data.data.children.map(
-    (i: {
-      data: {
-        title: string;
-        name: string;
-        thumbnail: string;
-        num_comments: number;
-        wls: number;
-        ups: number;
-      };
-    }) => ({
-      title: i.data.title,
-      name: i.data.name,
-      thumbnail: i.data.thumbnail,
-      comment: i.data.num_comments,
-      share: i.data.wls,
-      votes: i.data.ups,
-    })
-  );
+  }[] = data.data.children.map((i: Data) => ({
+    title: i.data.title,
+    name: i.data.name,
+    thumbnail: i.data.thumbnail,
+    comment: i.data.num_comments,
+    share: i.data.wls,
+    votes: i.data.ups,
+  }));
   // console.log(data)
+
 
   return (
     <div className="flex flex-col p-3 gap-3">
@@ -136,17 +161,13 @@ function Post({
     <div className="flex gap-3 p-[10px] rounded border h-[100px] shadow-sm">
       <div className="rounded-lg bg-gray-800 h-[80px] w-[80px] overflow-hidden">
         {thumbnail != "self" && (
-          <img
-            src={thumbnail}
-            alt={"post photo"}
-            className="h-[80px]"
-          />
+          <img src={thumbnail} alt={"post photo"} className="h-full w-auto" />
         )}
       </div>
 
       {/* Title */}
       <div className="flex flex-col flex-1 justify-between">
-        <div>{title.slice(0,120)}</div>
+        <div>{title.slice(0, 120)}</div>
         <div className="flex justify-between text-sm">
           <div className="flex items-center gap-2">
             <span className="text-gray-500">Posted by</span>

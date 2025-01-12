@@ -1,16 +1,36 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+"use client";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  Dispatch,
+  SetStateAction,
+} from "react";
 
 // Define the type for the data
-interface Data {
-  id: number;
-  name: string;
+export interface Data {
+  data: {
+    title: string;
+    name: string;
+    thumbnail: string;
+    num_comments: number;
+    wls: number;
+    ups: number;
+  };
 }
 
 // Define the type for our context
 interface DataContextType {
   data: Data[];
-  addItem: (item: Data) => void;
-  removeItem: (id: number) => void;
+  setData: Dispatch<SetStateAction<Data[]>>;
+  showSearchResult: boolean;
+  setShowSearchResult: Dispatch<SetStateAction<boolean>>;
+  query: string;
+  setQuery: Dispatch<SetStateAction<string>>;
+  isLoadingSearching: boolean;
+  setIsLoadingSearching: Dispatch<SetStateAction<boolean>>;
 }
 
 // Create the DataContext with a default value
@@ -23,17 +43,23 @@ interface DataProviderProps {
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const [data, setData] = useState<Data[]>([]);
-
-  const addItem = (item: Data) => {
-    setData((prevData) => [...prevData, item]);
-  };
-
-  const removeItem = (id: number) => {
-    setData((prevData) => prevData.filter((item) => item.id !== id));
-  };
-
+  const [showSearchResult, setShowSearchResult] = useState(false);
+  const [query, setQuery] = useState("");
+  const [isLoadingSearching, setIsLoadingSearching] = useState(true);
+  
   return (
-    <DataContext.Provider value={{ data, addItem, removeItem }}>
+    <DataContext.Provider
+      value={{
+        data,
+        setData,
+        showSearchResult,
+        setShowSearchResult,
+        query,
+        setQuery,
+        isLoadingSearching,
+        setIsLoadingSearching,
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
@@ -43,7 +69,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 export const useData = (): DataContextType => {
   const context = useContext(DataContext);
   if (!context) {
-    throw new Error('useData must be used within a DataProvider');
+    throw new Error("useData must be used within a DataProvider");
   }
   return context;
 };

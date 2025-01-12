@@ -1,3 +1,4 @@
+"use client";
 import {
   AArrowDown,
   ArrowUp10,
@@ -11,6 +12,8 @@ import {
 } from "lucide-react";
 import Logo from "./logo";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useData } from "@/contexts/DataContext";
 
 export default function Header() {
   return (
@@ -36,16 +39,7 @@ export default function Header() {
         </Link>
 
         {/* Search Component */}
-        <div
-          id="search-container "
-          className=" px-3 rounded w-[400px] border bg-gray-100 flex-1"
-        >
-          <SearchIcon size={20} color="#888" />
-          <input
-            className=" p-2 rounded outline-none w-full bg-transparent "
-            placeholder="Find community or post"
-          />
-        </div>
+        <SearchBox />
 
         {/* Create post button */}
         <button className="bg-[#FF4500] text-white p-2 px-4 rounded-md">
@@ -63,5 +57,66 @@ export default function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+function SearchBox() {
+  const { setShowSearchResult, setQuery, setData,  setIsLoadingSearching } = useData();
+  const [inputValue, setInputValue] = useState("");
+  // const [data, setData] = useState(null);
+  // const [loading, setLoading] = useState(false);
+
+  // const [error, setError] = useState(null);
+
+  useEffect(() => {
+    setQuery(inputValue);
+    if (inputValue === "") return setShowSearchResult(false); // Don't fetch if input is empty
+    setShowSearchResult(true);
+    let isMounted = true; // Flag to check if component is still mounted
+
+    const fetchData = async () => {
+      setIsLoadingSearching(true);
+      try {
+        const response = await fetch(
+          `https://www.reddit.com/search.json?q=${inputValue}&limit=10`
+        );
+        const result = await response.json();
+        if (isMounted) {
+          setData([...result.data.children]);
+        }
+      } catch (err) {
+        if (isMounted) {
+          // setError(err);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingSearching(false);
+        }
+      }
+    };
+
+    fetchData();
+
+    // Cleanup function to set isMounted to false when component is unmounted
+    return () => {
+      isMounted = false;
+    };
+  }, [inputValue]); // Trigger effect whenever inputValue changes
+
+  return (
+    <div
+      id="search-container "
+      className=" px-3 rounded w-[400px] border bg-gray-100 flex-1"
+    >
+      <SearchIcon size={20} color="#888" />
+      <input
+        type="text"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        // placeholder="Search"
+        className=" p-2 rounded outline-none w-full bg-transparent "
+        placeholder="Find community or post"
+      />
+    </div>
   );
 }
