@@ -57,6 +57,7 @@ function SearchResult({ query }: { query: string }) {
     comment: number;
     share: number;
     votes: number;
+    url: string;
   }[] = data.map((i: Data) => ({
     title: i.data.title,
     name: i.data.name,
@@ -64,16 +65,17 @@ function SearchResult({ query }: { query: string }) {
     comment: i.data.num_comments,
     share: i.data.wls,
     votes: i.data.ups,
+    url: i.data.url,
   }));
-
-  
 
   return (
     <div className="flex flex-col gap-3 px-5 pb-5 overflow-auto max-h-full bg-white m-3 rounded">
       <div className="py-3">Search Result : &quot;{query}&quot;</div>
-      {isLoadingSearching ? <div className="p-5 text-center">Loading...</div> : _data.map((d, i) => (
-        <Post key={i} {...d} />
-      ))}
+      {isLoadingSearching ? (
+        <div className="p-5 text-center">Loading...</div>
+      ) : (
+        _data.map((d, i) => <Post key={i} {...d} />)
+      )}
     </div>
   );
 }
@@ -111,6 +113,7 @@ function Posts({ category }: { category: string }) {
     comment: number;
     share: number;
     votes: number;
+    url: string;
   }[] = data.data.children.map((i: Data) => ({
     title: i.data.title,
     name: i.data.name,
@@ -118,9 +121,9 @@ function Posts({ category }: { category: string }) {
     comment: i.data.num_comments,
     share: i.data.wls,
     votes: i.data.ups,
+    url: i.data.url,
   }));
   // console.log(data)
-
 
   return (
     <div className="flex flex-col p-3 gap-3">
@@ -148,6 +151,7 @@ function Post({
   comment,
   share,
   votes,
+  url,
 }: {
   thumbnail: string;
   title: string;
@@ -156,6 +160,7 @@ function Post({
   comment: number;
   share: number;
   votes: number;
+  url?: string;
 }) {
   return (
     <div className="flex gap-3 p-[10px] rounded border h-[100px] shadow-sm">
@@ -167,7 +172,9 @@ function Post({
 
       {/* Title */}
       <div className="flex flex-col flex-1 justify-between">
-        <div>{title.slice(0, 120)}</div>
+        <a target="_blank" href={url || ""}>
+          {title.length > 115 ? title.slice(0, 120) + "..." : title}
+        </a>
         <div className="flex justify-between text-sm">
           <div className="flex items-center gap-2">
             <span className="text-gray-500">Posted by</span>

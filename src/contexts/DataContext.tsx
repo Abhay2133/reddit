@@ -18,6 +18,7 @@ export interface Data {
     num_comments: number;
     wls: number;
     ups: number;
+    url:string;
   };
 }
 
